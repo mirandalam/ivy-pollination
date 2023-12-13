@@ -1,0 +1,371 @@
+---
+title: "Pollination and frugivory in ivy: Electronic R code"
+author: "Oi Ki Miranda Lam"
+date: "2023-12-13"
+output:
+  html_document:
+    toc: TRUE
+---
+
+## Pollinator visits
+
+```{r message = FALSE, results = FALSE, warning = FALSE}
+# Load required packages
+library(readxl)
+library(ggplot2)
+library(ggpubr)
+```
+
+
+```{r}
+# Import and format data
+survey_data <- data.frame(read.csv("Results from pollinator surveys.csv"))
+df_count <- survey_data[c('Site','No..of.umbels','Wasps','Total.no..of.visits')]
+df_count$Site <- factor(df_count$Site, levels = c("TM", "BG"))
+```
+
+#### Generalised Linear Model for number of visits by all insects
+```{r}
+model1 <- glm(Total.no..of.visits ~ Site + offset(log(No..of.umbels)), family = poisson(link = 'log'), data =df_count)
+summary(model1)
+
+#effect_plot(model1, pred = Site,interval = TRUE, data = df_count, partial.residuals = TRUE, jitter = .1)
+```
+
+##### Model validation
+```{r}
+plot(model1)
+theta <-model1$deviance/model1$df.residual
+theta
+
+devresid <- resid(model1, type = 'deviance')
+plot(devresid ~ model1$fitted.values)
+plot(devresid ~ df_count$Site)
+
+```
+
+#### Generalised Linear Model for number of visits by wasps only
+```{r}
+# hist(df_count$Wasps)
+wasp1 <- glm(Wasps ~ Site + offset(log(No..of.umbels)), family = quasipoisson (link = 'log'), data = df_count)
+summary(wasp1)
+
+```
+
+##### Model validation
+```{r}
+plot(wasp1)
+theta <-wasp1$deviance/wasp1$df.residual
+theta
+
+devresid <- resid(model1, type = 'deviance')
+plot(devresid ~ model1$fitted.values)
+plot(devresid ~ df_count$Site)
+
+```
+
+## Pollinator community
+
+```{r}
+# Import & format data
+
+grp_counts <- as.table(rbind(c( sum(survey_data$Bumblebees[survey_data$Site == 'TM']),
+                                  sum(survey_data$Honey.bees[survey_data$Site == 'TM']),
+                                  sum(survey_data$Solitary.bees[survey_data$Site == 'TM']),
+                                  sum(survey_data$Wasps[survey_data$Site == 'TM']),
+                                  sum(survey_data$Hoverflies[survey_data$Site == 'TM']),
+                                  sum(survey_data$Other.flies[survey_data$Site == 'TM']),
+                                  sum(survey_data$Butterflies.and.Moths[survey_data$Site == 'TM']),
+                                  sum(survey_data$Small.insects...3mm.[survey_data$Site == 'TM'])
+                                  ),
+                               c( sum(survey_data$Bumblebees[survey_data$Site == 'BG']),
+                                  sum(survey_data$Honey.bees[survey_data$Site == 'BG']),
+                                  sum(survey_data$Solitary.bees[survey_data$Site == 'BG']),
+                                  sum(survey_data$Wasps[survey_data$Site == 'BG']),
+                                  sum(survey_data$Hoverflies[survey_data$Site == 'BG']),
+                                  sum(survey_data$Other.flies[survey_data$Site == 'BG']),
+                                  sum(survey_data$Butterflies.and.Moths[survey_data$Site == 'BG']),
+                                  sum(survey_data$Small.insects...3mm.[survey_data$Site == 'BG'])
+                                 )))
+                                  
+dimnames(grp_counts) <- list(site = c("TM", "BG"),
+                               groups = c("Bumblebee",
+                                          "Honey bee",
+                                          "Solitary bee",
+                                          "Wasp",
+                                          "Hoverfly",
+                                          "Other flies",
+                                          "Butterflies & Moths",
+                                          "Small insects (<3mm)")) 
+# Display data as table
+knitr::kable(grp_counts, caption = "No. of pollinators recorded" )
+
+```
+
+#### Fisher's exact test
+```{r}
+fisher.test(grp_counts, simulate.p.value = TRUE)
+```
+
+## Generalised Linear Model for fruiting success
+
+```{r}
+# Import & format data
+df_frset <- read.csv("Fruit set.csv")
+df_frset$Site <- factor(df_frset$Site, levels = c("TM", "BG"))
+df_frset$Treatment <- factor(df_frset$Treatment, levels = c("Bagged", "Open", "Hand Pollinated"))
+
+df_frset$fruit_set <- cbind(df_frset$Success, df_frset$Failure) # create success/fail for fruit set
+```
+
+#### Quasibinomial fruit set stepwise backwards elimination
+
+Full saturated model:
+
+```{r}
+setmod1 <- glm(fruit_set ~ Site + Treatment + Site:Treatment, data=df_frset, family=quasibinomial(link="logit"))
+summary(setmod1)
+# Check which variable to drop next
+drop1(setmod1, test="F")
+```
+
+Interaction variable (Site:Treatment) is dropped in the next model.
+
+```{r}
+setmod2 <- glm(fruit_set ~ Site + Treatment, data=df_frset, family=quasibinomial(link="logit")) 
+anova(setmod1, setmod2, test = "F") #Comparing fit of models, retain term if fit is significantly different
+drop1(setmod2, test="F")
+```
+
+The 'Site' variable will be dropped in the next model.
+
+```{r}
+setmod3 <- glm(fruit_set ~ Treatment, data=df_frset,
+family=quasibinomial (link="logit"))
+anova(setmod2, setmod3, test = "F")
+drop1(setmod3, test="F")
+```
+
+Results suggest that dropping the 'Treatment' variable will lead to significant differences in model fit. The variable was dropped in the next model to see if this is true.
+
+```{r}
+setmod4 <- glm(fruit_set ~ 1, data=df_frset, family=quasibinomial)
+anova(setmod3, setmod4, test = "F")
+
+```
+
+Dropping the 'Treatment' variable led to significance difference in model fit, therefore this variable is retained in the final model.
+
+#### Model validation
+
+##### Diagnostic plots
+
+```{r}
+plot(setmod3) 
+```
+
+#### Post-hoc tukey HSD test
+
+```{r message = FALSE, results = FALSE, warning = FALSE}
+# Load required packages
+library(multcomp)
+```
+
+```{r}
+summary(glht(setmod3, mcp(Treatment="Tukey")))
+```
+#### Describe data
+
+```{r message = FALSE, warning = FALSE}
+df_frset %>% group_by(Treatment) %>% dplyr::summarise(mean(Percentage),
+                                                      sd = sd(Percentage),
+                                                      n = length(Percentage),
+                                                      se = sd / sqrt(n)
+                                                      )
+```
+
+## Generalised Linear Model for fruit size
+
+```{r}
+# Import & format data
+dfsize <- read.csv("Fruit size.csv")
+dfsize$Site <- factor(dfsize$Site,levels = c("TM", "BG")) 
+dfsize$Treatment <- factor(dfsize$Treatment, levels = c("Bagged", "Open", "Hand pollinated"))
+dfsize_mean <- dfsize %>% group_by(Site, Treatment, Replicate.no.) %>% dplyr::summarise(Size = mean(Size..mm.))
+
+# dfsize <- read_excel("Ivy pollination study supporting data 131223.xlsx", sheet = "Fruit size R")
+# dfsize$Site <- factor(dfsize$Site,levels = c("TM", "BG")) 
+# dfsize$Treatment <- factor(dfsize$Treatment, levels = c("Bagged", "Open", "Hand Pollinated"))
+```
+
+#### Stepwise backwards elimination
+
+Full saturated model:
+
+```{r}
+sizemod1 <- glm(Size ~ Site + Treatment + Site:Treatment, data=dfsize_mean, family=gaussian (link="identity"))
+summary (sizemod1)
+drop1(sizemod1, test="F") # Use to check variables to drop
+```
+
+This shows that the interaction variable (Site:Treatment) can be dropped without leading to significant differences in model fit.
+
+```{r}
+sizemod2 <- glm(Size ~ Site + Treatment, data=dfsize_mean, family=gaussian (link="identity"))
+anova(sizemod1, sizemod2, test = "F")
+drop1(sizemod2, test="F")
+```
+
+This shows that the 'Site' variable can be dropped.
+
+```{r}
+sizemod3 <- glm(Size ~ Treatment, data=dfsize_mean, family=gaussian (link="identity"))
+anova(sizemod2, sizemod3, test = "F")
+drop1(sizemod3, test="F")
+```
+
+This shows that dropping the 'Treatment' variable will lead to significant differences in model fit. This was tested in the next model.
+
+```{r}
+sizemod4 <- glm(Size ~ 1, data=dfsize_mean, family=gaussian (link="identity"))
+anova (sizemod3, sizemod4, test = "F")
+```
+
+Dropping the 'Treatment' variable led to significance difference in model fit, therefore this variable is retained in the final model.
+
+#### Model validation
+
+##### Diagnostic plots
+
+```{r}
+plot(sizemod3) 
+```
+
+#### Post-hoc tukey HSD test
+
+```{r message = FALSE, results = FALSE, warning = FALSE}
+# Load required packages
+library(multcomp)
+```
+
+```{r}
+summary(glht(sizemod3, mcp(Treatment="Tukey")))
+```
+
+#### Describe data
+```{r}
+dfsize %>% group_by(Treatment) %>% dplyr::summarise(mean(Size..mm.),
+                                                      sd = sd(Size..mm.),
+                                                      n = length(Size..mm.),
+                                                      se = sd / sqrt(n)
+                                                      )
+```
+
+## Survival analysis
+
+```{r message = FALSE, results = FALSE, warning = FALSE}
+# Load required packages
+library(survival)
+library(survminer)
+library(dplyr) 
+library(ggpubr) 
+
+# Import & format data
+survdata <- read.csv("Survival analysis.csv")
+TM <- subset(survdata, Site == "TM") 
+BG <- subset(survdata, Site == "BG")
+```
+
+#### Trumpington Meadows:
+
+##### Fit survival data using the Kaplan-Meier method
+
+```{r}
+surv_object_TM <- Surv(time = TM$Survival.time, event = TM$Censored) 
+TMfit1 <- survfit(surv_object_TM ~ Treatment, data = TM) 
+summary(TMfit1, times = c(4, 14))
+```
+
+##### Log-rank test
+
+```{r}
+survdiff(Surv(time = TM$Survival.time, event = TM$Censored) ~ Treatment, data = TM)
+
+```
+
+##### Plotting survival curve
+
+```{r}
+ggsurvplot(TMfit1, data = TM, 
+           conf.int = TRUE, 
+           legend.title = "Treatment", 
+           legend.labs = c("Bagged","Hand Pollinated", "Open"), 
+           font.x = 17, font.y = 17, font.legend = 17, 
+           legend = "right", 
+           palette = c("Blue", "azure4", "Red"), pval = TRUE)
+```
+
+#### Botanic Garden:
+
+##### Fit survival data using the Kaplan-Meier method
+
+```{r}
+surv_object_BG <- Surv(time = BG$Survival.time, event = BG$Censored) 
+BGfit1 <- survfit(surv_object_BG ~ Treatment, data = BG)
+summary(BGfit1, times = c(4, 14)) 
+```
+
+##### Log-rank test
+
+```{r}
+survdiff(Surv(time = BG$Survival.time, event = BG$Censored) ~ Treatment, data = BG)
+```
+
+##### Plotting survival curve
+
+```{r}
+ggsurvplot(BGfit1, data = BG, 
+           conf.int = TRUE,
+           legend.title = "Treatment", 
+           legend.labs = c("Bagged","Hand Pollinated", "Open"), 
+           font.x = 17, font.y = 17, font.legend = 17,
+           legend = "right",
+           palette = c("Blue", "azure4", "Red"), pval = TRUE)
+```
+
+## Appendix - Species-accumulation curves and sampling completedness (Fig. S1)
+
+```{r}
+# Load required packages
+library(iNEXT)
+library(ggplot2)
+
+# Import & format data
+spacc <- read.csv("iNEXT.csv")
+spacc_df <- data.frame(spacc$Site, spacc$Species, spacc$Quantity)
+spacc_num <- list(TM=as.numeric(spacc_df[which(spacc_df$spacc.Site==1),3]),
+                 BG=as.numeric(spacc_df[which(spacc_df$spacc.Site==2),3]))
+```
+
+#### Plotting species-accumulation curves
+
+```{r warning = FALSE, message = FALSE}
+new.curve <- iNEXT(spacc_num, q=0, datatype="abundance", endpoint = 500)
+new.curve
+DataInfo(spacc_num, datatype="abundance")
+
+ggiNEXT(new.curve, type=1) + theme_bw(base_size = 18) + scale_colour_manual(values=c("red", "blue")) + scale_fill_manual(values=c("red", "blue"))
+```
+
+#### Species richness for each site
+
+```{r warning = FALSE, message = FALSE}
+ChaoRichness(as.numeric(spacc_df[which(spacc_df$spacc.Site==1),3])) #TM richness
+ChaoRichness(as.numeric(spacc_df[which(spacc_df$spacc.Site==2),3])) #BG richness
+```
+
+#### Plotting sample completedness curves
+
+```{r warning=FALSE, message = FALSE}
+ggiNEXT(new.curve, type=2) + theme_bw(base_size = 18) + scale_colour_manual(values=c("red", "blue")) + scale_fill_manual(values=c("red", "blue"))
+```

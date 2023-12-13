@@ -1,0 +1,67 @@
+﻿Site,Treatment,Success,Failure,Percentage
+TM,Bagged,3,40,6.976744186
+TM,Bagged,1,33,2.941176471
+TM,Bagged,2,23,8
+TM,Bagged,3,20,13.04347826
+TM,Bagged,0,22,0
+TM,Bagged,4,18,18.18181818
+TM,Bagged,6,29,17.14285714
+TM,Bagged,0,36,0
+TM,Bagged,6,18,25
+TM,Bagged,0,28,0
+TM,Bagged,5,23,17.85714286
+TM,Bagged,0,29,0
+TM,Open,20,14,58.82352941
+TM,Open,13,14,48.14814815
+TM,Open,15,4,78.94736842
+TM,Open,14,7,66.66666667
+TM,Open,14,2,87.5
+TM,Open,19,5,79.16666667
+TM,Open,10,19,34.48275862
+TM,Open,37,4,90.24390244
+TM,Open,30,23,56.60377358
+TM,Open,15,11,57.69230769
+TM,Open,15,11,57.69230769
+TM,Open,22,10,68.75
+TM,Hand Pollinated,18,4,81.81818182
+TM,Hand Pollinated,20,11,64.51612903
+TM,Hand Pollinated,21,0,100
+TM,Hand Pollinated,23,6,79.31034483
+TM,Hand Pollinated,22,2,91.66666667
+TM,Hand Pollinated,14,1,93.33333333
+TM,Hand Pollinated,31,0,100
+TM,Hand Pollinated,40,2,95.23809524
+TM,Hand Pollinated,17,3,85
+TM,Hand Pollinated,28,3,90.32258065
+TM,Hand Pollinated,24,0,100
+TM,Hand Pollinated,20,9,68.96551724
+BG,Bagged,0,15,0
+BG,Bagged,0,15,0
+BG,Bagged,2,22,8.333333333
+BG,Bagged,0,17,0
+BG,Bagged,0,24,0
+BG,Bagged,0,21,0
+BG,Bagged,0,15,0
+BG,Bagged,1,21,4.545454545
+BG,Bagged,1,25,3.846153846
+BG,Bagged,9,40,18.36734694
+BG,Open,10,6,62.5
+BG,Open,15,2,88.23529412
+BG,Open,14,16,46.66666667
+BG,Open,10,4,71.42857143
+BG,Open,9,13,40.90909091
+BG,Open,10,10,50
+BG,Open,13,8,61.9047619
+BG,Open,17,0,100
+BG,Open,15,9,62.5
+BG,Open,24,15,61.53846154
+BG,Hand Pollinated,11,4,73.33333333
+BG,Hand Pollinated,19,0,100
+BG,Hand Pollinated,17,3,85
+BG,Hand Pollinated,14,0,100
+BG,Hand Pollinated,28,0,100
+BG,Hand Pollinated,16,5,76.19047619
+BG,Hand Pollinated,18,1,94.73684211
+BG,Hand Pollinated,19,0,100
+BG,Hand Pollinated,17,2,89.47368421
+BG,Hand Pollinated,48,6,88.88888889
