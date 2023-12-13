@@ -19,7 +19,7 @@ library(ggpubr)
 
 ```{r}
 # Import and format data
-survey_data <- data.frame(read.csv("Results from pollinator surveys.csv"))
+survey_data <- data.frame(read.csv("data/Results from pollinator surveys.csv"))
 df_count <- survey_data[c('Site','No..of.umbels','Wasps','Total.no..of.visits')]
 df_count$Site <- factor(df_count$Site, levels = c("TM", "BG"))
 ```
@@ -28,8 +28,6 @@ df_count$Site <- factor(df_count$Site, levels = c("TM", "BG"))
 ```{r}
 model1 <- glm(Total.no..of.visits ~ Site + offset(log(No..of.umbels)), family = poisson(link = 'log'), data =df_count)
 summary(model1)
-
-#effect_plot(model1, pred = Site,interval = TRUE, data = df_count, partial.residuals = TRUE, jitter = .1)
 ```
 
 ##### Model validation
@@ -111,7 +109,7 @@ fisher.test(grp_counts, simulate.p.value = TRUE)
 
 ```{r}
 # Import & format data
-df_frset <- read.csv("Fruit set.csv")
+df_frset <- read.csv("data/Fruit set.csv")
 df_frset$Site <- factor(df_frset$Site, levels = c("TM", "BG"))
 df_frset$Treatment <- factor(df_frset$Treatment, levels = c("Bagged", "Open", "Hand Pollinated"))
 
@@ -188,14 +186,10 @@ df_frset %>% group_by(Treatment) %>% dplyr::summarise(mean(Percentage),
 
 ```{r}
 # Import & format data
-dfsize <- read.csv("Fruit size.csv")
+dfsize <- read.csv("data/Fruit size.csv")
 dfsize$Site <- factor(dfsize$Site,levels = c("TM", "BG")) 
 dfsize$Treatment <- factor(dfsize$Treatment, levels = c("Bagged", "Open", "Hand pollinated"))
 dfsize_mean <- dfsize %>% group_by(Site, Treatment, Replicate.no.) %>% dplyr::summarise(Size = mean(Size..mm.))
-
-# dfsize <- read_excel("Ivy pollination study supporting data 131223.xlsx", sheet = "Fruit size R")
-# dfsize$Site <- factor(dfsize$Site,levels = c("TM", "BG")) 
-# dfsize$Treatment <- factor(dfsize$Treatment, levels = c("Bagged", "Open", "Hand Pollinated"))
 ```
 
 #### Stepwise backwards elimination
@@ -271,7 +265,7 @@ library(dplyr)
 library(ggpubr) 
 
 # Import & format data
-survdata <- read.csv("Survival analysis.csv")
+survdata <- read.csv("data/Survival analysis.csv")
 TM <- subset(survdata, Site == "TM") 
 BG <- subset(survdata, Site == "BG")
 ```
@@ -341,7 +335,7 @@ library(iNEXT)
 library(ggplot2)
 
 # Import & format data
-spacc <- read.csv("iNEXT.csv")
+spacc <- read.csv("data/iNEXT.csv")
 spacc_df <- data.frame(spacc$Site, spacc$Species, spacc$Quantity)
 spacc_num <- list(TM=as.numeric(spacc_df[which(spacc_df$spacc.Site==1),3]),
                  BG=as.numeric(spacc_df[which(spacc_df$spacc.Site==2),3]))
