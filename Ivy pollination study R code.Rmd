@@ -14,6 +14,7 @@ output:
 library(readxl)
 library(ggplot2)
 library(ggpubr)
+library(MASS)
 ```
 
 
@@ -45,7 +46,7 @@ plot(devresid ~ df_count$Site)
 #### Generalised Linear Model for number of visits by wasps only
 ```{r}
 # hist(df_count$Wasps)
-wasp1 <- glm(Wasps ~ Site + offset(log(No..of.umbels)), family = quasipoisson (link = 'log'), data = df_count)
+wasp1 <- glm.nb(Wasps ~ Site + offset(log(No..of.umbels)), link = 'log', data = df_count)
 summary(wasp1)
 
 ```
