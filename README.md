@@ -22,8 +22,5 @@ Please contact me if there are any issues or questions about this repository or 
 
 ## Version History
 
-* 0.2
-    * Various fixes and updated directory structure
-    * See [commit change]() or See [release history]()
 * 0.1
     * Initial Release
